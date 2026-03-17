@@ -17,7 +17,6 @@
       --input: #fffdf9;
       --good: #1f7a4d;
       --danger: #a63d40;
-      --warn: #b2771f;
     }
     * { box-sizing: border-box; }
     body {
@@ -44,9 +43,7 @@
     .auth-card { max-width: 460px; margin: 48px auto; }
     h2 { margin: 0 0 12px; color: var(--accent); font-size: 18px; }
     label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); font-weight: 700; }
-    input, select, textarea, button {
-      font: inherit;
-    }
+    input, select, textarea, button { font: inherit; }
     input, select, textarea {
       width: 100%;
       padding: 10px 12px;
@@ -56,6 +53,7 @@
       color: var(--text);
       outline: none;
     }
+    textarea { min-height: 110px; resize: vertical; }
     input:focus, select:focus, textarea:focus {
       border-color: var(--accent-2);
       box-shadow: 0 0 0 3px rgba(200,159,122,.15);
@@ -82,7 +80,7 @@
     }
     .grid {
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 340px 1fr;
       gap: 16px;
     }
     .section + .section { margin-top: 14px; }
@@ -116,10 +114,7 @@
       font-weight: 700;
       border: 1px solid transparent;
     }
-    .tab.active {
-      background: var(--accent);
-      color: #fff;
-    }
+    .tab.active { background: var(--accent); color: #fff; }
     .recipe-list {
       display: flex;
       flex-direction: column;
@@ -151,16 +146,50 @@
     .edit-panel-header {
       display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px;
     }
+    .mobile-section-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      padding-bottom: 4px;
+      border-bottom: 1px solid var(--border);
+    }
+    .section-tab {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: #f7f1e9;
+      color: #6c533d;
+      cursor: pointer;
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .section-tab.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .editor-subpanel { display: none; }
+    .editor-subpanel.active { display: block; }
     .ingredients-table {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
     }
-    .ingredient-line {
+    .ingredient-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #fffdf9;
+      padding: 10px;
+    }
+    .ingredient-grid {
       display: grid;
-      grid-template-columns: 1.2fr .75fr .65fr 1fr auto;
+      grid-template-columns: 1.2fr 0.8fr 0.7fr;
       gap: 8px;
-      align-items: center;
+      margin-bottom: 8px;
+    }
+    .ingredient-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
     }
     .result-summary {
       display: grid;
@@ -207,10 +236,11 @@
     @media (max-width: 700px) {
       .title { font-size: 24px; }
       .row { grid-template-columns: 1fr; }
-      .ingredient-line { grid-template-columns: 1fr 1fr; }
-      .ingredient-line button { grid-column: span 2; }
+      .ingredient-grid { grid-template-columns: 1fr 1fr; }
+      .ingredient-grid .wide { grid-column: span 2; }
       th, td { font-size: 13px; padding: 9px 10px; }
       .edit-panel-header { align-items: stretch; }
+      .mobile-section-tabs { position: sticky; top: 0; background: #fff; z-index: 2; padding-top: 4px; }
     }
   </style>
 </head>
@@ -256,8 +286,9 @@
           <div class="btns">
             <button class="btn-secondary btn-small" id="addCategoryBtn">新增分类</button>
             <button class="btn-ghost btn-small" id="renameCategoryBtn">重命名分类</button>
+            <button class="btn-danger btn-small" id="deleteCategoryBtn">删除分类</button>
           </div>
-          <div class="tip" id="categoryTip">先点分类，再管理对应配方。</div>
+          <div class="tip" id="categoryTip">先点分类，再管理对应配方。删除分类前，建议先把配方移动到别的分类。</div>
           <div class="btns">
             <button class="btn-primary btn-small" id="newRecipeBtn">+ 新建配方</button>
           </div>
@@ -275,29 +306,43 @@
           </div>
 
           <div id="editorArea" class="hidden">
-            <div class="row">
-              <div>
-                <label for="recipeName">配方名称</label>
-                <input id="recipeName" placeholder="例如：木薯糖水" />
-              </div>
-              <div>
-                <label for="yieldPerBatch">标准配方可出几份</label>
-                <input id="yieldPerBatch" type="number" step="0.01" placeholder="例如：20" />
-              </div>
+            <div class="mobile-section-tabs" id="sectionTabs">
+              <button class="section-tab active" data-panel="basicPanel">基础信息</button>
+              <button class="section-tab" data-panel="itemsPanel">配料明细</button>
+              <button class="section-tab" data-panel="processPanel">制作流程</button>
+              <button class="section-tab" data-panel="calcPanel">备料计算</button>
             </div>
 
-            <div class="row section">
-              <div>
-                <label for="baseName">基准项名称</label>
-                <input id="baseName" placeholder="例如：水 / 牛奶 / 成品总量" />
+            <div class="editor-subpanel active" id="basicPanel">
+              <div class="row">
+                <div>
+                  <label for="recipeName">配方名称</label>
+                  <input id="recipeName" placeholder="例如：木薯糖水" />
+                </div>
+                <div>
+                  <label for="yieldPerBatch">标准配方可出几份</label>
+                  <input id="yieldPerBatch" type="number" step="0.01" placeholder="例如：20" />
+                </div>
               </div>
-              <div>
+
+              <div class="row section">
+                <div>
+                  <label for="recipeCategorySelect">所属分类</label>
+                  <select id="recipeCategorySelect"></select>
+                </div>
+                <div>
+                  <label for="baseName">基准项名称</label>
+                  <input id="baseName" placeholder="例如：水 / 牛奶 / 成品总量" />
+                </div>
+              </div>
+
+              <div class="section">
                 <label for="baseAmount">标准基准量</label>
                 <input id="baseAmount" type="number" step="0.01" placeholder="例如：1000" />
               </div>
             </div>
 
-            <div class="section">
+            <div class="editor-subpanel" id="itemsPanel">
               <div class="edit-panel-header" style="margin-bottom:8px;">
                 <label style="margin:0;">配料明细</label>
                 <div class="btns">
@@ -307,70 +352,76 @@
               <div class="ingredients-table" id="ingredientsList"></div>
             </div>
 
+            <div class="editor-subpanel" id="processPanel">
+              <label for="makingSteps">制作流程</label>
+              <textarea id="makingSteps" placeholder="例如：\n1. 木薯先焯水\n2. 加糖和水煮透\n3. 小火焖10分钟\n4. 放凉后冷藏备用"></textarea>
+              <div class="tip">这里适合写店长和员工要看的标准做法、注意事项、先后顺序。</div>
+            </div>
+
+            <div class="editor-subpanel" id="calcPanel">
+              <h2>备料计算</h2>
+              <div class="mode-switch">
+                <button class="tab active" data-mode="base">按基准量</button>
+                <button class="tab" data-mode="portion">按份数</button>
+              </div>
+
+              <div id="baseInputWrap" class="row">
+                <div>
+                  <label for="targetAmount">今天输入的基准量</label>
+                  <input id="targetAmount" type="number" step="0.01" placeholder="例如：2500" />
+                </div>
+                <div>
+                  <label>说明</label>
+                  <input value="系统会按基准量同比例放大" disabled />
+                </div>
+              </div>
+
+              <div id="portionInputWrap" class="row hidden">
+                <div>
+                  <label for="targetPortions">今天准备几份</label>
+                  <input id="targetPortions" type="number" step="0.01" placeholder="例如：35" />
+                </div>
+                <div>
+                  <label>说明</label>
+                  <input value="系统会按份数自动放大整锅配比" disabled />
+                </div>
+              </div>
+
+              <div class="btns">
+                <button class="btn-primary" id="calcBtn">立即计算</button>
+                <button class="btn-secondary" id="copyBtn">复制备料清单</button>
+              </div>
+
+              <div class="result-summary">
+                <div class="summary-box"><div class="k">标准基准量</div><div class="v" id="summaryBase">-</div></div>
+                <div class="summary-box"><div class="k">当前输入</div><div class="v" id="summaryTarget">-</div></div>
+                <div class="summary-box"><div class="k">放大倍数</div><div class="v" id="summaryRatio">-</div></div>
+                <div class="summary-box"><div class="k">预计份数</div><div class="v" id="summaryPortions">-</div></div>
+              </div>
+
+              <table>
+                <thead>
+                  <tr>
+                    <th>配料</th>
+                    <th>标准用量</th>
+                    <th>单位</th>
+                    <th>今日需用量</th>
+                    <th>单份约用量</th>
+                  </tr>
+                </thead>
+                <tbody id="resultBody">
+                  <tr><td colspan="5" class="muted">暂无结果</td></tr>
+                </tbody>
+              </table>
+
+              <div class="tip" id="exportPreview">这里会显示可直接发给店长或员工的备料清单。</div>
+            </div>
+
             <div class="btns">
               <button class="btn-primary" id="saveRecipeBtn">保存配方</button>
             </div>
 
             <div class="tip">建议核心底料用代号，例如“糖浆A”“奶底B”，不要把最核心底层逻辑全部明文写给店长。</div>
-
-            <hr style="border:none;border-top:1px solid var(--border);margin:18px 0;">
-
-            <h2>备料计算</h2>
-            <div class="mode-switch">
-              <button class="tab active" data-mode="base">按基准量</button>
-              <button class="tab" data-mode="portion">按份数</button>
-            </div>
-
-            <div id="baseInputWrap" class="row">
-              <div>
-                <label for="targetAmount">今天输入的基准量</label>
-                <input id="targetAmount" type="number" step="0.01" placeholder="例如：2500" />
-              </div>
-              <div>
-                <label>说明</label>
-                <input value="系统会按基准量同比例放大" disabled />
-              </div>
-            </div>
-
-            <div id="portionInputWrap" class="row hidden">
-              <div>
-                <label for="targetPortions">今天准备几份</label>
-                <input id="targetPortions" type="number" step="0.01" placeholder="例如：35" />
-              </div>
-              <div>
-                <label>说明</label>
-                <input value="系统会按份数自动放大整锅配比" disabled />
-              </div>
-            </div>
-
-            <div class="btns">
-              <button class="btn-primary" id="calcBtn">立即计算</button>
-              <button class="btn-secondary" id="copyBtn">复制备料清单</button>
-            </div>
-
-            <div class="result-summary">
-              <div class="summary-box"><div class="k">标准基准量</div><div class="v" id="summaryBase">-</div></div>
-              <div class="summary-box"><div class="k">当前输入</div><div class="v" id="summaryTarget">-</div></div>
-              <div class="summary-box"><div class="k">放大倍数</div><div class="v" id="summaryRatio">-</div></div>
-              <div class="summary-box"><div class="k">预计份数</div><div class="v" id="summaryPortions">-</div></div>
-            </div>
-
-            <table>
-              <thead>
-                <tr>
-                  <th>配料</th>
-                  <th>标准用量</th>
-                  <th>单位</th>
-                  <th>今日需用量</th>
-                  <th>单份约用量</th>
-                </tr>
-              </thead>
-              <tbody id="resultBody">
-                <tr><td colspan="5" class="muted">暂无结果</td></tr>
-              </tbody>
-            </table>
-
-            <div class="tip" id="exportPreview">这里会显示可直接发给店长或员工的备料清单。</div>
           </div>
         </div>
       </div>
@@ -403,6 +454,10 @@
     }
     function currentItems() {
       return items.filter(i => i.recipe_id === currentRecipeId).sort((a,b) => a.sort_order - b.sort_order);
+    }
+
+    async function ensureStepsColumn() {
+      // 前端兼容：如果数据库暂时还没加 making_steps 字段，这里不报错，只是保存时会失败。
     }
 
     async function checkSession() {
@@ -469,6 +524,7 @@
       if (currentRecipeId && !recipes.find(r => r.id === currentRecipeId)) currentRecipeId = list[0]?.id || null;
 
       renderCategories();
+      renderRecipeCategorySelect();
       renderRecipeList();
       renderEditor();
       renderResults();
@@ -478,6 +534,10 @@
       $('categoryTabs').innerHTML = categories.map(c => `
         <button class="tab ${c.id === currentCategoryId ? 'active' : ''}" data-id="${c.id}">${esc(c.name)}</button>
       `).join('');
+    }
+
+    function renderRecipeCategorySelect() {
+      $('recipeCategorySelect').innerHTML = categories.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
     }
 
     function renderRecipeList() {
@@ -508,18 +568,24 @@
       $('baseAmount').value = r.base_amount || '';
       $('targetAmount').value = r.base_amount || '';
       $('targetPortions').value = r.yield_per_batch || '';
+      $('recipeCategorySelect').value = r.category_id || '';
+      $('makingSteps').value = r.making_steps || '';
 
       const lines = currentItems();
       $('ingredientsList').innerHTML = lines.map((it, idx) => `
-        <div class="ingredient-line" data-index="${idx}">
-          <input placeholder="配料名称" value="${esc(it.item_name)}" data-k="item_name" />
-          <input type="number" step="0.01" placeholder="用量" value="${it.amount}" data-k="amount" />
-          <input placeholder="单位" value="${esc(it.unit || 'g')}" data-k="unit" />
-          <input placeholder="备注" value="${esc(it.note || '')}" data-k="note" />
-          <div class="btns" style="margin:0;">
-            <button class="btn-ghost btn-small" data-act="up">↑</button>
-            <button class="btn-ghost btn-small" data-act="down">↓</button>
-            <button class="btn-danger btn-small" data-act="del">删</button>
+        <div class="ingredient-card" data-index="${idx}">
+          <div class="ingredient-grid">
+            <input class="wide" placeholder="配料名称" value="${esc(it.item_name)}" data-k="item_name" />
+            <input type="number" step="0.01" placeholder="用量" value="${it.amount}" data-k="amount" />
+            <input placeholder="单位" value="${esc(it.unit || 'g')}" data-k="unit" />
+          </div>
+          <div class="section">
+            <input placeholder="备注（可不填）" value="${esc(it.note || '')}" data-k="note" />
+          </div>
+          <div class="ingredient-actions">
+            <button class="btn-ghost btn-small" data-act="up">↑ 上移</button>
+            <button class="btn-ghost btn-small" data-act="down">↓ 下移</button>
+            <button class="btn-danger btn-small" data-act="del">删除</button>
           </div>
         </div>
       `).join('');
@@ -528,18 +594,20 @@
     function collectEditor() {
       const r = currentRecipe();
       if (!r) return null;
-      const lines = Array.from(document.querySelectorAll('#ingredientsList .ingredient-line'));
+      const cards = Array.from(document.querySelectorAll('#ingredientsList .ingredient-card'));
       const recipe = {
         ...r,
         name: $('recipeName').value.trim() || '未命名配方',
         yield_per_batch: Number($('yieldPerBatch').value || 0),
         base_name: $('baseName').value.trim() || '水',
-        base_amount: Number($('baseAmount').value || 0)
+        base_amount: Number($('baseAmount').value || 0),
+        category_id: $('recipeCategorySelect').value || null,
+        making_steps: $('makingSteps').value.trim()
       };
-      const recipeItems = lines.map((line, idx) => {
-        const inputs = line.querySelectorAll('input');
+      const recipeItems = cards.map((card, idx) => {
+        const inputs = card.querySelectorAll('input');
         return {
-          ...currentItems()[Number(line.dataset.index)],
+          ...currentItems()[Number(card.dataset.index)],
           item_name: inputs[0].value.trim(),
           amount: Number(inputs[1].value || 0),
           unit: inputs[2].value.trim() || 'g',
@@ -558,9 +626,11 @@
         name: data.recipe.name,
         yield_per_batch: data.recipe.yield_per_batch,
         base_name: data.recipe.base_name,
-        base_amount: data.recipe.base_amount
+        base_amount: data.recipe.base_amount,
+        category_id: data.recipe.category_id,
+        making_steps: data.recipe.making_steps
       }).eq('id', data.recipe.id);
-      if (e1) return alert('保存配方失败：' + e1.message);
+      if (e1) return alert('保存配方失败：' + e1.message + '\n\n如果提示列不存在，请先运行我给你的新增字段 SQL。');
 
       const { error: e2 } = await sb.from('recipe_items_v2').delete().eq('recipe_id', data.recipe.id);
       if (e2) return alert('清空旧配料失败：' + e2.message);
@@ -592,7 +662,8 @@
         base_name: '水',
         base_amount: 1000,
         yield_per_batch: 20,
-        sort_order: sort
+        sort_order: sort,
+        making_steps: ''
       }]).select().single();
       if (error) return alert('新建配方失败：' + error.message);
       currentRecipeId = data.id;
@@ -641,6 +712,21 @@
       if (!name) return;
       const { error } = await sb.from('recipe_categories_v2').update({ name: name.trim() }).eq('id', c.id);
       if (error) return alert('重命名失败：' + error.message);
+      await loadAll();
+    }
+
+    async function deleteCategory() {
+      const c = categories.find(x => x.id === currentCategoryId);
+      if (!c) return;
+      const count = recipes.filter(r => r.category_id === currentCategoryId).length;
+      if (count > 0) {
+        alert('这个分类下还有配方，请先把配方改到别的分类或删除后再删分类。');
+        return;
+      }
+      if (!confirm(`确定删除分类「${c.name}」吗？`)) return;
+      const { error } = await sb.from('recipe_categories_v2').delete().eq('id', c.id);
+      if (error) return alert('删除分类失败：' + error.message);
+      currentCategoryId = null;
       await loadAll();
     }
 
@@ -700,25 +786,28 @@
         `当前输入：${targetText}`,
         `放大倍数：${fmt(ratio)}倍`,
         portions ? `预计份数：${fmt(portions)}份` : '',
+        r.making_steps ? `\n制作流程：\n${r.making_steps}` : '',
         '',
         ...rows.map(x => `${x.item_name}：${fmt(x.needed)} ${x.unit}`)
       ].filter(Boolean).join('\n');
     }
 
     function addBlankItem() {
-      const idx = document.querySelectorAll('#ingredientsList .ingredient-line').length;
+      const idx = document.querySelectorAll('#ingredientsList .ingredient-card').length;
       const div = document.createElement('div');
-      div.className = 'ingredient-line';
+      div.className = 'ingredient-card';
       div.dataset.index = idx;
       div.innerHTML = `
-        <input placeholder="配料名称" data-k="item_name" />
-        <input type="number" step="0.01" placeholder="用量" data-k="amount" value="0" />
-        <input placeholder="单位" data-k="unit" value="g" />
-        <input placeholder="备注" data-k="note" />
-        <div class="btns" style="margin:0;">
-          <button class="btn-ghost btn-small" data-act="up">↑</button>
-          <button class="btn-ghost btn-small" data-act="down">↓</button>
-          <button class="btn-danger btn-small" data-act="del">删</button>
+        <div class="ingredient-grid">
+          <input class="wide" placeholder="配料名称" data-k="item_name" />
+          <input type="number" step="0.01" placeholder="用量" data-k="amount" value="0" />
+          <input placeholder="单位" data-k="unit" value="g" />
+        </div>
+        <div class="section"><input placeholder="备注（可不填）" data-k="note" /></div>
+        <div class="ingredient-actions">
+          <button class="btn-ghost btn-small" data-act="up">↑ 上移</button>
+          <button class="btn-ghost btn-small" data-act="down">↓ 下移</button>
+          <button class="btn-danger btn-small" data-act="del">删除</button>
         </div>
       `;
       $('ingredientsList').appendChild(div);
@@ -741,6 +830,7 @@
     $('addItemBtn').onclick = addBlankItem;
     $('addCategoryBtn').onclick = addCategory;
     $('renameCategoryBtn').onclick = renameCategory;
+    $('deleteCategoryBtn').onclick = deleteCategory;
     $('calcBtn').onclick = renderResults;
     $('copyBtn').onclick = copyText;
 
@@ -776,25 +866,35 @@
         return;
       }
 
+      const sectionTab = e.target.closest('#sectionTabs .section-tab');
+      if (sectionTab) {
+        document.querySelectorAll('#sectionTabs .section-tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.editor-subpanel').forEach(x => x.classList.remove('active'));
+        sectionTab.classList.add('active');
+        $(sectionTab.dataset.panel).classList.add('active');
+        return;
+      }
+
       const itemBtn = e.target.closest('#ingredientsList button[data-act]');
       if (itemBtn) {
-        const line = itemBtn.closest('.ingredient-line');
-        const all = Array.from(document.querySelectorAll('#ingredientsList .ingredient-line'));
-        const idx = all.indexOf(line);
+        const card = itemBtn.closest('.ingredient-card');
+        const all = Array.from(document.querySelectorAll('#ingredientsList .ingredient-card'));
+        const idx = all.indexOf(card);
         const act = itemBtn.dataset.act;
         if (act === 'del') {
-          line.remove();
+          card.remove();
         } else if (act === 'up' && idx > 0) {
-          line.parentNode.insertBefore(line, all[idx - 1]);
+          card.parentNode.insertBefore(card, all[idx - 1]);
         } else if (act === 'down' && idx < all.length - 1) {
-          line.parentNode.insertBefore(all[idx + 1], line);
+          card.parentNode.insertBefore(all[idx + 1], card);
         }
         renderResults();
       }
     });
 
-    ['recipeName','yieldPerBatch','baseName','baseAmount','targetAmount','targetPortions'].forEach(id => {
+    ['recipeName','yieldPerBatch','baseName','baseAmount','targetAmount','targetPortions','makingSteps','recipeCategorySelect'].forEach(id => {
       $(id).addEventListener('input', renderResults);
+      $(id).addEventListener('change', renderResults);
     });
     $('ingredientsList').addEventListener('input', renderResults);
 
