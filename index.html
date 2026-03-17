@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+from pathlib import Path
+from textwrap import dedent
+
+html = dedent(r'''<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
@@ -6,168 +9,54 @@
   <title>岭南甜记｜配方备料系统 V2</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --bg: #f7f4ef;
-      --card: #ffffff;
-      --text: #2c241d;
-      --muted: #7a6b5d;
-      --accent: #8b5e3c;
-      --accent-2: #c89f7a;
-      --border: #eadfce;
-      --input: #fffdf9;
-      --good: #1f7a4d;
-      --danger: #a63d40;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft YaHei", sans-serif;
-      background: linear-gradient(180deg, #fbf8f3 0%, var(--bg) 100%);
-      color: var(--text);
-    }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
-    .title { font-size: 28px; font-weight: 800; color: var(--accent); margin: 0 0 6px; }
-    .subtitle { color: var(--muted); margin: 0; font-size: 14px; line-height: 1.6; }
-    .hidden { display: none !important; }
-    .topbar {
-      display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;
-    }
-    .topbar-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: 0 8px 24px rgba(84, 60, 38, 0.06);
-      padding: 16px;
-    }
-    .auth-card { max-width: 460px; margin: 48px auto; }
-    h2 { margin: 0 0 12px; color: var(--accent); font-size: 18px; }
-    label { display: block; margin-bottom: 6px; font-size: 13px; color: var(--muted); font-weight: 700; }
-    input, select, textarea, button { font: inherit; }
-    input, select, textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--input);
-      color: var(--text);
-      outline: none;
-    }
-    textarea { min-height: 110px; resize: vertical; }
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--accent-2);
-      box-shadow: 0 0 0 3px rgba(200,159,122,.15);
-    }
-    button {
-      border: none;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-weight: 700;
-      cursor: pointer;
-    }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-secondary { background: #efe6db; color: var(--accent); }
-    .btn-ghost { background: #f7f1e9; color: #6c533d; }
-    .btn-danger { background: #f7e3e3; color: var(--danger); }
-    .btn-small { padding: 8px 10px; font-size: 13px; }
-    .pill {
-      background: #f5ede3;
-      color: var(--accent);
-      padding: 8px 12px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 700;
-    }
-    .section + .section { margin-top: 14px; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
-    .btns { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    .tip {
-      margin-top: 12px;
-      padding: 12px;
-      border: 1px dashed var(--border);
-      border-radius: 12px;
-      background: #fbf6ef;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.6;
-      white-space: pre-line;
-    }
-    .small { font-size: 12px; color: var(--muted); }
-    .selector-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr 1fr;
-      gap: 12px;
-      margin-bottom: 16px;
-    }
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(4,1fr);
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-    .summary-box {
-      padding: 12px;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      background: #fcf8f2;
-    }
-    .summary-box .k { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
-    .summary-box .v { font-size: 20px; color: var(--accent); font-weight: 800; }
-    .editor-layout {
-      display: grid;
-      grid-template-columns: 1.1fr .9fr;
-      gap: 16px;
-    }
-    .ingredient-compact-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      max-height: 360px;
-      overflow: auto;
-      padding-right: 2px;
-    }
-    .ingredient-row {
-      display: grid;
-      grid-template-columns: 1.1fr .65fr .55fr auto;
-      gap: 8px;
-      align-items: center;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 8px;
-      background: #fffdf9;
-    }
-    .ingredient-row .notes {
-      grid-column: 1 / -1;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      overflow: hidden;
-    }
-    th, td {
-      padding: 10px 12px;
-      border-bottom: 1px solid var(--border);
-      text-align: left;
-      font-size: 14px;
-    }
-    th { background: #f8f1e8; color: var(--accent); }
-    tr:last-child td { border-bottom: none; }
-    .good { color: var(--good); font-weight: 800; }
-    .muted { color: var(--muted); }
-    .compact-table th, .compact-table td { padding: 8px 10px; font-size: 13px; }
-    @media (max-width: 980px) {
-      .selector-grid, .summary-grid, .editor-layout, .row3 { grid-template-columns: 1fr; }
-    }
-    @media (max-width: 700px) {
-      .title { font-size: 24px; }
-      .row { grid-template-columns: 1fr; }
-      .ingredient-row { grid-template-columns: 1fr 1fr; }
-      .ingredient-row .notes { grid-column: 1 / -1; }
-      th, td { font-size: 13px; padding: 9px 10px; }
-    }
+    :root { --bg:#f7f4ef; --card:#fff; --text:#2c241d; --muted:#7a6b5d; --accent:#8b5e3c; --accent-2:#c89f7a; --border:#eadfce; --input:#fffdf9; --good:#1f7a4d; --danger:#a63d40; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif; background:linear-gradient(180deg,#fbf8f3 0%,var(--bg) 100%); color:var(--text); }
+    .wrap { max-width:1100px; margin:0 auto; padding:16px; }
+    .title { font-size:28px; font-weight:800; color:var(--accent); margin:0 0 6px; }
+    .subtitle { color:var(--muted); margin:0; font-size:14px; line-height:1.6; }
+    .hidden { display:none !important; }
+    .topbar { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+    .topbar-right { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:18px; box-shadow:0 8px 24px rgba(84,60,38,.06); padding:16px; }
+    .auth-card { max-width:460px; margin:48px auto; }
+    h2 { margin:0 0 12px; color:var(--accent); font-size:18px; }
+    label { display:block; margin-bottom:6px; font-size:13px; color:var(--muted); font-weight:700; }
+    input, select, textarea, button { font:inherit; }
+    input, select, textarea { width:100%; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:var(--input); color:var(--text); outline:none; }
+    textarea { min-height:110px; resize:vertical; }
+    input:focus, select:focus, textarea:focus { border-color:var(--accent-2); box-shadow:0 0 0 3px rgba(200,159,122,.15); }
+    button { border:none; border-radius:12px; padding:10px 14px; font-weight:700; cursor:pointer; }
+    .btn-primary { background:var(--accent); color:#fff; }
+    .btn-secondary { background:#efe6db; color:var(--accent); }
+    .btn-ghost { background:#f7f1e9; color:#6c533d; }
+    .btn-danger { background:#f7e3e3; color:var(--danger); }
+    .btn-small { padding:8px 10px; font-size:13px; }
+    .pill { background:#f5ede3; color:var(--accent); padding:8px 12px; border-radius:999px; font-size:13px; font-weight:700; }
+    .section + .section { margin-top:14px; }
+    .row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+    .btns { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+    .tip { margin-top:12px; padding:12px; border:1px dashed var(--border); border-radius:12px; background:#fbf6ef; color:var(--muted); font-size:13px; line-height:1.6; white-space:pre-line; }
+    .small { font-size:12px; color:var(--muted); }
+    .selector-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; margin-bottom:16px; }
+    .summary-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:14px; }
+    .summary-box { padding:12px; border:1px solid var(--border); border-radius:14px; background:#fcf8f2; }
+    .summary-box .k { font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .summary-box .v { font-size:20px; color:var(--accent); font-weight:800; }
+    .editor-layout { display:grid; grid-template-columns:1.1fr .9fr; gap:16px; }
+    .ingredient-compact-list { display:flex; flex-direction:column; gap:8px; max-height:360px; overflow:auto; padding-right:2px; }
+    .ingredient-row { display:grid; grid-template-columns:1.1fr .65fr .55fr auto; gap:8px; align-items:center; border:1px solid var(--border); border-radius:12px; padding:8px; background:#fffdf9; }
+    .ingredient-row .notes { grid-column:1 / -1; }
+    table { width:100%; border-collapse:collapse; border:1px solid var(--border); border-radius:14px; overflow:hidden; }
+    th, td { padding:10px 12px; border-bottom:1px solid var(--border); text-align:left; font-size:14px; }
+    th { background:#f8f1e8; color:var(--accent); }
+    tr:last-child td { border-bottom:none; }
+    .good { color:var(--good); font-weight:800; }
+    .muted { color:var(--muted); }
+    .compact-table th, .compact-table td { padding:8px 10px; font-size:13px; }
+    @media (max-width:980px) { .selector-grid, .summary-grid, .editor-layout, .row3 { grid-template-columns:1fr; } }
+    @media (max-width:700px) { .title { font-size:24px; } .row { grid-template-columns:1fr; } .ingredient-row { grid-template-columns:1fr 1fr; } .ingredient-row .notes { grid-column:1 / -1; } th, td { font-size:13px; padding:9px 10px; } }
   </style>
 </head>
 <body>
@@ -176,18 +65,9 @@
       <div class="card auth-card">
         <div class="title">岭南甜记｜配方备料系统 V2</div>
         <p class="subtitle">新版支持：类别选择、配方选择、制作流程、紧凑配料明细、自动备料计算。</p>
-        <div class="section">
-          <label for="email">邮箱</label>
-          <input id="email" type="email" placeholder="输入邮箱" />
-        </div>
-        <div class="section">
-          <label for="password">密码</label>
-          <input id="password" type="password" placeholder="输入密码" />
-        </div>
-        <div class="btns">
-          <button class="btn-primary" id="loginBtn">登录</button>
-          <button class="btn-secondary" id="signupBtn">注册</button>
-        </div>
+        <div class="section"><label for="email">邮箱</label><input id="email" type="email" placeholder="输入邮箱" /></div>
+        <div class="section"><label for="password">密码</label><input id="password" type="password" placeholder="输入密码" /></div>
+        <div class="btns"><button class="btn-primary" id="loginBtn">登录</button><button class="btn-secondary" id="signupBtn">注册</button></div>
         <div class="tip" id="authMsg">第一次可以先注册一个老板账号。</div>
       </div>
     </div>
@@ -198,11 +78,7 @@
           <div class="title">岭南甜记｜配方备料系统 V2</div>
           <p class="subtitle">先选类别，再选配方，再查看或编辑。页面更简洁，手机端更适合操作。</p>
         </div>
-        <div class="topbar-right">
-          <span class="pill" id="userInfo">未登录</span>
-          <button class="btn-secondary btn-small" id="refreshBtn">刷新</button>
-          <button class="btn-danger btn-small" id="logoutBtn">退出</button>
-        </div>
+        <div class="topbar-right"><span class="pill" id="userInfo">未登录</span><button class="btn-secondary btn-small" id="refreshBtn">刷新</button><button class="btn-danger btn-small" id="logoutBtn">退出</button></div>
       </div>
 
       <div class="card">
@@ -210,21 +86,12 @@
           <div>
             <label for="categorySelect">1. 选择类别</label>
             <select id="categorySelect"></select>
-            <div class="btns">
-              <button class="btn-secondary btn-small" id="addCategoryBtn">新增分类</button>
-              <button class="btn-ghost btn-small" id="renameCategoryBtn">改名</button>
-              <button class="btn-danger btn-small" id="deleteCategoryBtn">删除</button>
-            </div>
+            <div class="btns"><button class="btn-secondary btn-small" id="addCategoryBtn">新增分类</button><button class="btn-ghost btn-small" id="renameCategoryBtn">改名</button><button class="btn-danger btn-small" id="deleteCategoryBtn">删除</button></div>
           </div>
           <div>
             <label for="recipeSelect">2. 选择配方</label>
             <select id="recipeSelect"></select>
-            <div class="btns">
-              <button class="btn-primary btn-small" id="newRecipeBtn">新建配方</button>
-              <button class="btn-secondary btn-small" id="moveRecipeUpBtn">上移</button>
-              <button class="btn-secondary btn-small" id="moveRecipeDownBtn">下移</button>
-              <button class="btn-danger btn-small" id="deleteRecipeBtn">删除</button>
-            </div>
+            <div class="btns"><button class="btn-primary btn-small" id="newRecipeBtn">新建配方</button><button class="btn-secondary btn-small" id="moveRecipeUpBtn">上移</button><button class="btn-secondary btn-small" id="moveRecipeDownBtn">下移</button><button class="btn-danger btn-small" id="deleteRecipeBtn">删除</button></div>
           </div>
           <div>
             <label>3. 当前状态</label>
@@ -240,64 +107,44 @@
           <h2 id="panelTitle">配方详情</h2>
 
           <div class="row section">
-            <div>
-              <label for="recipeName">配方名称</label>
-              <input id="recipeName" placeholder="例如：木薯糖水" />
-            </div>
-            <div>
-              <label for="recipeCategorySelect">所属分类</label>
-              <select id="recipeCategorySelect"></select>
-            </div>
+            <div><label for="recipeName">配方名称</label><input id="recipeName" placeholder="例如：木薯糖水" /></div>
+            <div><label for="recipeCategorySelect">所属分类</label><select id="recipeCategorySelect"></select></div>
           </div>
 
           <div class="row3 section">
-            <div>
-              <label for="yieldPerBatch">标准配方可出几份</label>
-              <input id="yieldPerBatch" type="number" step="0.01" placeholder="例如：20" />
-            </div>
-            <div>
-              <label for="baseName">基准项名称</label>
-              <input id="baseName" placeholder="例如：水 / 牛奶" />
-            </div>
-            <div>
-              <label for="baseAmount">标准基准量</label>
-              <input id="baseAmount" type="number" step="0.01" placeholder="例如：1000" />
-            </div>
+            <div><label for="yieldPerBatch">标准配方可出几份</label><input id="yieldPerBatch" type="number" step="0.01" placeholder="例如：20" /></div>
+            <div><label for="baseName">基准项名称</label><input id="baseName" placeholder="例如：水 / 牛奶" /></div>
+            <div><label for="baseAmount">标准基准量</label><input id="baseAmount" type="number" step="0.01" placeholder="例如：1000" /></div>
           </div>
 
           <div class="editor-layout section">
             <div>
-              <div class="edit-panel-header" style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
                 <label style="margin:0;">配料明细</label>
                 <button class="btn-secondary btn-small" id="addItemBtn">+ 新增配料</button>
               </div>
               <div class="ingredient-compact-list" id="ingredientsList"></div>
             </div>
-
             <div>
               <label for="makingSteps">制作流程</label>
-              <textarea id="makingSteps" placeholder="例如：\n1. 木薯先焯水\n2. 加糖和水煮透\n3. 小火焖10分钟\n4. 放凉后冷藏备用"></textarea>
+              <textarea id="makingSteps" placeholder="例如：
+1. 木薯先焯水
+2. 加糖和水煮透
+3. 小火焖10分钟
+4. 放凉后冷藏备用"></textarea>
               <div class="tip">这里写给店长和员工看的标准做法、先后顺序、注意事项。</div>
             </div>
           </div>
 
-          <div class="btns">
-            <button class="btn-primary" id="saveRecipeBtn">保存配方</button>
-          </div>
+          <div class="btns"><button class="btn-primary" id="saveRecipeBtn">保存配方</button></div>
         </div>
       </div>
 
       <div class="section card" id="calcCard">
         <h2>备料计算</h2>
         <div class="row section">
-          <div>
-            <label for="targetAmount">输入今天的基准量</label>
-            <input id="targetAmount" type="number" step="0.01" placeholder="例如：2500" />
-          </div>
-          <div>
-            <label>预计份数</label>
-            <input id="expectedPortions" disabled value="-" />
-          </div>
+          <div><label for="targetAmount">输入今天的基准量</label><input id="targetAmount" type="number" step="0.01" placeholder="例如：2500" /></div>
+          <div><label>预计份数</label><input id="expectedPortions" disabled value="-" /></div>
         </div>
 
         <div class="summary-grid">
@@ -309,22 +156,12 @@
 
         <table class="compact-table">
           <thead>
-            <tr>
-              <th>配料</th>
-              <th>今日需用量</th>
-              <th>单位</th>
-              <th>标准量</th>
-            </tr>
+            <tr><th>配料</th><th>今日需用量</th><th>单位</th><th>标准量</th><th>单份用量</th></tr>
           </thead>
-          <tbody id="resultBody">
-            <tr><td colspan="4" class="muted">先选配方再输入基准量。</td></tr>
-          </tbody>
+          <tbody id="resultBody"><tr><td colspan="5" class="muted">先选配方再输入基准量。</td></tr></tbody>
         </table>
 
-        <div class="btns">
-          <button class="btn-secondary" id="copyBtn">复制备料清单</button>
-        </div>
-
+        <div class="btns"><button class="btn-secondary" id="copyBtn">复制备料清单</button></div>
         <div class="tip" id="stepsPreview">这里会显示制作流程与备料清单。</div>
       </div>
     </div>
@@ -335,12 +172,7 @@
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZlaGhxeXJxbGpsZ3ZwbG1sZ2ZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2NzUzOTEsImV4cCI6MjA4OTI1MTM5MX0.NXs93cMQszFhjlpMLO5ltQbirgE-w4OmChnoTKgA4ZU';
     const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let categories = [];
-    let recipes = [];
-    let items = [];
-    let currentCategoryId = null;
-    let currentRecipeId = null;
-
+    let categories = [], recipes = [], items = [], currentCategoryId = null, currentRecipeId = null;
     const $ = (id) => document.getElementById(id);
     const fmt = (v) => {
       const n = Number(v || 0);
@@ -350,12 +182,8 @@
     };
     const esc = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 
-    function currentRecipe() {
-      return recipes.find(r => r.id === currentRecipeId) || null;
-    }
-    function currentItems() {
-      return items.filter(i => i.recipe_id === currentRecipeId).sort((a,b) => a.sort_order - b.sort_order);
-    }
+    function currentRecipe(){ return recipes.find(r => r.id === currentRecipeId) || null; }
+    function currentItems(){ return items.filter(i => i.recipe_id === currentRecipeId).sort((a,b)=>a.sort_order-b.sort_order); }
 
     async function checkSession() {
       const { data } = await sb.auth.getSession();
@@ -387,16 +215,13 @@
       }
     }
 
-    async function signOut() {
-      await sb.auth.signOut();
-      location.reload();
-    }
+    async function signOut() { await sb.auth.signOut(); location.reload(); }
 
     async function loadAll() {
-      const [c1, c2, c3] = await Promise.all([
-        sb.from('recipe_categories_v2').select('*').order('sort_order', { ascending: true }),
-        sb.from('recipes_v2').select('*').order('sort_order', { ascending: true }),
-        sb.from('recipe_items_v2').select('*').order('sort_order', { ascending: true })
+      const [c1,c2,c3] = await Promise.all([
+        sb.from('recipe_categories_v2').select('*').order('sort_order', { ascending:true }),
+        sb.from('recipes_v2').select('*').order('sort_order', { ascending:true }),
+        sb.from('recipe_items_v2').select('*').order('sort_order', { ascending:true })
       ]);
       if (c1.error) return alert('读取分类失败：' + c1.error.message);
       if (c2.error) return alert('读取配方失败：' + c2.error.message);
@@ -411,12 +236,7 @@
       if (!currentRecipeId && list.length) currentRecipeId = list[0].id;
       if (currentRecipeId && !recipes.find(r => r.id === currentRecipeId)) currentRecipeId = list[0]?.id || null;
 
-      renderCategorySelect();
-      renderRecipeSelect();
-      renderRecipeCategorySelect();
-      renderEditor();
-      renderResults();
-      renderStatus();
+      renderCategorySelect(); renderRecipeSelect(); renderRecipeCategorySelect(); renderEditor(); renderResults(); renderStatus();
     }
 
     function renderCategorySelect() {
@@ -442,11 +262,7 @@
 
     function renderEditor() {
       const r = currentRecipe();
-      if (!r) {
-        $('emptyState').classList.remove('hidden');
-        $('editorArea').classList.add('hidden');
-        return;
-      }
+      if (!r) { $('emptyState').classList.remove('hidden'); $('editorArea').classList.add('hidden'); return; }
       $('emptyState').classList.add('hidden');
       $('editorArea').classList.remove('hidden');
       $('panelTitle').textContent = r.name;
@@ -504,7 +320,7 @@
     async function saveRecipe() {
       const data = collectEditor();
       if (!data) return;
-      const { error: e1 } = await sb.from('recipes_v2').update({
+      const { error:e1 } = await sb.from('recipes_v2').update({
         name: data.recipe.name,
         yield_per_batch: data.recipe.yield_per_batch,
         base_name: data.recipe.base_name,
@@ -513,14 +329,17 @@
         making_steps: data.recipe.making_steps
       }).eq('id', data.recipe.id);
       if (e1) return alert('保存配方失败：' + e1.message);
-      const { error: e2 } = await sb.from('recipe_items_v2').delete().eq('recipe_id', data.recipe.id);
+
+      const { error:e2 } = await sb.from('recipe_items_v2').delete().eq('recipe_id', data.recipe.id);
       if (e2) return alert('清空旧配料失败：' + e2.message);
+
       if (data.recipeItems.length) {
-        const payload = data.recipeItems.map((x, idx) => ({ recipe_id: data.recipe.id, item_name: x.item_name, amount: x.amount, unit: x.unit, note: x.note, sort_order: idx }));
-        const { error: e3 } = await sb.from('recipe_items_v2').insert(payload);
+        const payload = data.recipeItems.map((x, idx) => ({ recipe_id:data.recipe.id, item_name:x.item_name, amount:x.amount, unit:x.unit, note:x.note, sort_order:idx }));
+        const { error:e3 } = await sb.from('recipe_items_v2').insert(payload);
         if (e3) return alert('保存配料失败：' + e3.message);
       }
       alert('保存成功');
+      currentCategoryId = data.recipe.category_id || currentCategoryId;
       await loadAll();
     }
 
@@ -528,10 +347,10 @@
       if (!currentCategoryId) return alert('请先有一个分类');
       const list = recipes.filter(r => r.category_id === currentCategoryId);
       const sort = list.length ? Math.max(...list.map(x => x.sort_order || 0)) + 1 : 1;
-      const { data, error } = await sb.from('recipes_v2').insert([{ category_id: currentCategoryId, name: '新配方', base_name: '水', base_amount: 1000, yield_per_batch: 20, sort_order: sort, making_steps: '' }]).select().single();
+      const { data, error } = await sb.from('recipes_v2').insert([{ category_id:currentCategoryId, name:'新配方', base_name:'水', base_amount:1000, yield_per_batch:20, sort_order:sort, making_steps:'' }]).select().single();
       if (error) return alert('新建配方失败：' + error.message);
       currentRecipeId = data.id;
-      await sb.from('recipe_items_v2').insert([{ recipe_id: data.id, item_name: '水', amount: 1000, unit: 'g', note: '', sort_order: 0 }]);
+      await sb.from('recipe_items_v2').insert([{ recipe_id:data.id, item_name:'水', amount:1000, unit:'g', note:'', sort_order:0 }]);
       await loadAll();
     }
 
@@ -546,17 +365,15 @@
     }
 
     async function moveRecipe(direction) {
-      const list = recipes.filter(r => r.category_id === currentCategoryId).sort((a,b) => a.sort_order - b.sort_order);
+      const list = recipes.filter(r => r.category_id === currentCategoryId).sort((a,b)=>a.sort_order-b.sort_order);
       const idx = list.findIndex(r => r.id === currentRecipeId);
       if (idx < 0) return;
       const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
       if (targetIdx < 0 || targetIdx >= list.length) return;
-      const current = list[idx];
-      const target = list[targetIdx];
-      const a = current.sort_order;
-      const b = target.sort_order;
-      await sb.from('recipes_v2').update({ sort_order: b }).eq('id', current.id);
-      await sb.from('recipes_v2').update({ sort_order: a }).eq('id', target.id);
+      const current = list[idx], target = list[targetIdx];
+      const a = current.sort_order, b = target.sort_order;
+      await sb.from('recipes_v2').update({ sort_order:b }).eq('id', current.id);
+      await sb.from('recipes_v2').update({ sort_order:a }).eq('id', target.id);
       await loadAll();
     }
 
@@ -564,7 +381,7 @@
       const name = prompt('输入新分类名称');
       if (!name) return;
       const sort = categories.length ? Math.max(...categories.map(x => x.sort_order || 0)) + 1 : 1;
-      const { error } = await sb.from('recipe_categories_v2').insert([{ name: name.trim(), sort_order: sort }]);
+      const { error } = await sb.from('recipe_categories_v2').insert([{ name:name.trim(), sort_order:sort }]);
       if (error) return alert('新增分类失败：' + error.message);
       await loadAll();
     }
@@ -574,7 +391,7 @@
       if (!c) return;
       const name = prompt('输入新的分类名称', c.name);
       if (!name) return;
-      const { error } = await sb.from('recipe_categories_v2').update({ name: name.trim() }).eq('id', c.id);
+      const { error } = await sb.from('recipe_categories_v2').update({ name:name.trim() }).eq('id', c.id);
       if (error) return alert('重命名失败：' + error.message);
       await loadAll();
     }
@@ -598,7 +415,7 @@
       const ratio = base > 0 ? t / base : 0;
       const targetText = t ? `${r.base_name} ${fmt(t)}` : '-';
       const portions = stdPortions ? stdPortions * ratio : 0;
-      return { base, ratio, targetText, portions };
+      return { base, ratio, targetText, portions, stdPortions };
     }
 
     function renderResults() {
@@ -609,29 +426,30 @@
         $('summaryRatio').textContent = '-';
         $('summaryPortions').textContent = '-';
         $('expectedPortions').value = '-';
-        $('resultBody').innerHTML = '<tr><td colspan="4" class="muted">先选配方再输入基准量。</td></tr>';
+        $('resultBody').innerHTML = '<tr><td colspan="5" class="muted">先选配方再输入基准量。</td></tr>';
         $('stepsPreview').textContent = '这里会显示制作流程与备料清单。';
         return;
       }
       const lines = collectEditor()?.recipeItems || currentItems();
-      const { base, ratio, targetText, portions } = calcContext(r);
+      const { base, ratio, targetText, portions, stdPortions } = calcContext(r);
       $('summaryBase').textContent = base ? `${r.base_name} ${fmt(base)}` : '-';
       $('summaryTarget').textContent = targetText;
       $('summaryRatio').textContent = ratio ? `${fmt(ratio)} 倍` : '-';
       $('summaryPortions').textContent = portions ? `${fmt(portions)} 份` : '-';
       $('expectedPortions').value = portions ? `${fmt(portions)} 份` : '-';
       if (!lines.length || !ratio) {
-        $('resultBody').innerHTML = '<tr><td colspan="4" class="muted">输入基准量后自动显示结果。</td></tr>';
+        $('resultBody').innerHTML = '<tr><td colspan="5" class="muted">输入基准量后自动显示结果。</td></tr>';
         $('stepsPreview').textContent = r.making_steps || '未填写制作流程';
         return;
       }
-      const rows = lines.map(it => ({ ...it, needed: it.amount * ratio }));
+      const rows = lines.map(it => ({ ...it, needed: it.amount * ratio, perPortion: stdPortions > 0 ? it.amount / stdPortions : 0 }));
       $('resultBody').innerHTML = rows.map(x => `
         <tr>
           <td>${esc(x.item_name)}</td>
           <td class="good">${fmt(x.needed)}</td>
           <td>${esc(x.unit)}</td>
           <td>${fmt(x.amount)}</td>
+          <td>${x.perPortion ? fmt(x.perPortion) : '-'}</td>
         </tr>
       `).join('');
       $('stepsPreview').textContent = [
@@ -685,17 +503,12 @@
       currentCategoryId = $('categorySelect').value || null;
       const list = recipes.filter(r => r.category_id === currentCategoryId).sort((a,b)=>a.sort_order-b.sort_order);
       currentRecipeId = list[0]?.id || null;
-      renderRecipeSelect();
-      renderEditor();
-      renderResults();
-      renderStatus();
+      renderRecipeSelect(); renderEditor(); renderResults(); renderStatus();
     });
 
     $('recipeSelect').addEventListener('change', () => {
       currentRecipeId = $('recipeSelect').value || null;
-      renderEditor();
-      renderResults();
-      renderStatus();
+      renderEditor(); renderResults(); renderStatus();
     });
 
     ['recipeName','yieldPerBatch','baseName','baseAmount','targetAmount','makingSteps','recipeCategorySelect'].forEach(id => {
@@ -721,3 +534,8 @@
   </script>
 </body>
 </html>
+''')
+
+path = Path('/mnt/data/岭南甜记_配方备料系统_V2_最新版.html')
+path.write_text(html, encoding='utf-8')
+print(path.as_posix())
